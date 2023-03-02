@@ -1,0 +1,63 @@
+apiVersion: kapp.k14s.io/v1alpha1
+kind: Config
+waitRules:
+- conditionMatchers:
+  - type: ServiceAvailable
+    status: "False"
+    failure: true
+  - type: ServiceAvailable
+    status: "True"
+    success: true
+  resourceMatchers:
+  - apiVersionKindMatcher:
+      apiVersion: servicebinding.io/v1alpha3
+      kind: ServiceBinding
+---
+apiVersion: servicebinding.io/v1alpha3
+kind: ServiceBinding
+metadata:
+  name: mood-sensors-postgres-claim
+  annotations:
+    autoscaling.knative.dev/minScale: "1"
+  labels:
+    apis.apps.tanzu.vmware.com/register-api: "true"
+    app.kubernetes.io/part-of: mood-sensors
+    apps.tanzu.vmware.com/has-tests: "true"
+    apps.tanzu.vmware.com/workload-type: dekt-api
+    app.kubernetes.io/component: run
+    carto.run/workload-name: mood-sensors
+spec:
+  name: postgres-claim
+  service:
+    apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+    kind: ResourceClaim
+    name: inventory-db
+  workload:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: mood-sensors
+---
+apiVersion: servicebinding.io/v1alpha3
+kind: ServiceBinding
+metadata:
+  name: mood-sensors-rabbitmq-claim
+  annotations:
+    autoscaling.knative.dev/minScale: "1"
+  labels:
+    apis.apps.tanzu.vmware.com/register-api: "true"
+    app.kubernetes.io/part-of: mood-sensors
+    apps.tanzu.vmware.com/has-tests: "true"
+    apps.tanzu.vmware.com/workload-type: dekt-api
+    app.kubernetes.io/component: run
+    carto.run/workload-name: mood-sensors
+spec:
+  name: rabbitmq-claim
+  service:
+    apiVersion: rabbitmq.com/v1beta1
+    kind: RabbitmqCluster
+    name: reading-queue
+  workload:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: mood-sensors
+
