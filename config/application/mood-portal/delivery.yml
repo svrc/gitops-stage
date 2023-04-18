@@ -1,0 +1,44 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: mood-portal
+  annotations:
+    ootb.apps.tanzu.vmware.com/servicebinding-workload: "true"
+    ootb.apps.tanzu.vmware.com/apidescriptor-ref: "true"
+    kapp.k14s.io/change-rule: upsert after upserting servicebinding.io/ServiceBindings
+  labels:
+    app.kubernetes.io/part-of: mood-portal
+    apps.tanzu.vmware.com/workload-type: dekt-url
+    app.kubernetes.io/component: run
+    carto.run/workload-name: mood-portal
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        conventions.carto.run/applied-conventions: |-
+          spring-boot-convention/auto-configure-actuators-check
+          spring-boot-convention/app-live-view-appflavour-check
+          appliveview-sample/app-live-view-appflavour-check
+        developer.conventions/target-containers: workload
+      labels:
+        app.kubernetes.io/component: run
+        app.kubernetes.io/part-of: mood-portal
+        apps.tanzu.vmware.com/workload-type: dekt-url
+        carto.run/workload-name: mood-portal
+    spec:
+      containers:
+      - env:
+        - name: SNIFF_THRESHOLD
+          value: "20"
+        - name: SENSORS_ACTIVATE_API
+          value: https://mood-sensors.prod.tap.ycf.link/activate
+        - name: SENSORS_MEASURE_API
+          value: https://mood-sensors.prod.tap.ycf.link/measure
+        image: 897143170532.dkr.ecr.us-west-1.amazonaws.com/tap-apps/mood-portal-application@sha256:3e9b364d217d16574fb47cf0dd5217735cfd201e70daeac91969a4f8d9dff064
+        name: workload
+        resources: {}
+        securityContext:
+          runAsUser: 1000
+      serviceAccountName: default
+
